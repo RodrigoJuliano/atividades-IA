@@ -84,10 +84,39 @@ class Sudoku(Environment):
                     self.csp[i].append({'X': [i, j], 'D': [self.sudoku[i][j]],
                                         'C': [EqNumConstraint([[i, j], self.sudoku[i][j]])]})
 
-    # TODO
     def apply_GAC(self):
-        pass
+        to_do = [] # lista de arcos que precisam ser analizados
+        # Adiciona os arcos iniciais
+        for i in range(len(self.csp)):
+            for j in range(len(self.csp[i])):
+                for c in self.csp[i][j]['C']:
+                    # Não precisa verificar EqNumConstraint pois nesses casos o d(X)
+                    # já possui apenas um valor que não pode ser removido
+                    if type(c) == DiffConstraint:
+                        to_do.append((c.scope[0], c))
         
+        while to_do:
+            x, c = to_do.pop()
+            # arcos adicionados após a atualização de um domínio
+            # tem o y do lado esquerdo (posição 0 no scope) na restrição
+            y = c.scope[1] if c.scope[0] == x else c.scope[0]
+            nd = [] # Novo domínio de X
+            # Adiciona em nd os valores do d(X) que
+            # tem pelo menos um diferente em d(Y)
+            for vx in self.csp[x[0]][x[1]]['D']:
+                for vy in self.csp[y[0]][y[1]]['D']:
+                    if(vx != vy):
+                        nd.append(vx)
+                        break
+            if len(nd) != len(self.csp[x[0]][x[1]]['D']):
+                # atualiza X com o novo domínio
+                self.csp[x[0]][x[1]]['D'] = copy.deepcopy(nd)
+                # adiciona arcos (Z, c) para cada outra restrição de X
+                # sendo Z a outra variável envolvida na restrição
+                for xc in self.csp[x[0]][x[1]]['C']:
+                    if xc != c:
+                        to_do.append((xc.scope[1], xc))
+
 def is_viable(sudoku, i, j, v):
     ''' Auxiliary method that verifies whether a value, v, can be assigned to position [i,j] in the sudoku
 
