@@ -20,3 +20,18 @@ print(consequences)
 
 # Prove 'a'
 print(ag.top_down(['a']))
+
+kba = KBA([
+        Clause('bronchitis', ['influenza']),
+        Clause('bronchitis', ['smokes']),
+        Clause('coughing', ['bronchitis']),
+        Clause('wheezing', ['bronchitis']),
+        Clause('fever', ['influenza']),
+        Clause('soreThroat', ['influenza']),
+        Clause('false', ['smokes', 'nonsmoker']),
+        Assumable('smokes'),
+        Assumable('nonsmoker'),
+        Assumable('influenza')])
+
+ag = LogicalAgent(kba)
+print(ag.explain(['wheezing', 'nonsmoker']))
